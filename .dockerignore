@@ -1,0 +1,12 @@
+node_modules
+npm-debug.log
+.env
+.git
+.gitignore
+README.md
+*.zip
+.DS_Store
+.idea
+.vscode
+backend/kodari.db
+backend/kodari.db-journal
