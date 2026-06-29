@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Templates — Kodari AI</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .page-header {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 60px 24px 20px;
+      text-align: center;
+    }
+    .page-header h1 {
+      font-size: 42px;
+      margin-bottom: 12px;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .page-header p {
+      color: var(--text-secondary);
+      font-size: 16px;
+    }
+    .templates-grid {
+      max-width: 1100px;
+      margin: 40px auto;
+      padding: 0 24px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    .template-card {
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .template-card .icon {
+      font-size: 32px;
+      width: 56px;
+      height: 56px;
+      background: var(--gradient-soft);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .template-card h3 { font-size: 18px; }
+    .template-card .desc {
+      color: var(--text-secondary);
+      font-size: 14px;
+      line-height: 1.5;
+      flex: 1;
+    }
+    .template-card .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/" class="nav-brand">
+      <div class="nav-brand-icon">⛏</div>
+      Kodari
+    </a>
+    <div class="nav-links">
+      <a href="/templates" class="nav-link active">Templates</a>
+      <a href="/docs" class="nav-link">Docs</a>
+      <a href="/generator" class="nav-cta">Open IDE →</a>
+    </div>
+  </nav>
+
+  <div class="page-header">
+    <h1>📋 Plugin Templates</h1>
+    <p>One-click starter plugins. Click any template to open it in the IDE.</p>
+  </div>
+
+  <div class="templates-grid" id="templates-grid">
+    <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted)">
+      <div class="spinner"></div>
+      <p style="margin-top:12px">Loading templates...</p>
+    </div>
+  </div>
+
+  <footer class="footer">© 2026 Kodari AI Clone</footer>
+
+  <script>
+    fetch('/api/templates')
+      .then(r => r.json())
+      .then(data => {
+        const grid = document.getElementById('templates-grid');
+        grid.innerHTML = data.templates.map(t => `
+          <div class="card template-card" onclick="useTemplate('${t.id}', \`${t.prompt.replace(/`/g, '\\`')}\`)">
+            <div class="icon">${t.icon}</div>
+            <h3>${t.name}</h3>
+            <p class="desc">${t.description}</p>
+            <div class="footer">
+              <span class="badge badge-${t.difficulty}">${t.difficulty}</span>
+              <span style="color:var(--accent-glow);font-size:13px;font-weight:600">Use template →</span>
+            </div>
+          </div>
+        `).join('');
+      })
+      .catch(err => {
+        document.getElementById('templates-grid').innerHTML =
+          '<div style="grid-column:1/-1;text-align:center;color:var(--danger)">Failed to load templates. Make sure backend is running.</div>';
+      });
+
+    function useTemplate(id, prompt) {
+      localStorage.setItem('kodari-template', JSON.stringify({ id, prompt }));
+      window.location.href = '/generator';
+    }
+  </script>
+</body>
+</html>

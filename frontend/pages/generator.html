@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generator — Kodari AI</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/ide.css">
+</head>
+<body>
+  <div class="ide-container">
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <a href="/" class="topbar-brand">
+        <div class="topbar-icon">⛏</div>
+        Kodari
+      </a>
+      <div class="topbar-tabs" id="tabs"></div>
+      <div class="topbar-actions">
+        <div class="current-model-badge" id="current-model-badge" onclick="openSettings()" title="Click to change model">
+          <span class="provider-dot" id="provider-dot"></span>
+          <span id="current-model-text">Loading...</span>
+          <span class="settings-icon">⚙</span>
+        </div>
+        <button class="btn btn-ghost" onclick="saveProject()" title="Save project">💾</button>
+        <button class="btn btn-secondary" onclick="downloadProject()">⬇ Download</button>
+        <button class="btn btn-primary" onclick="buildPlugin()">⚡ Build</button>
+        <div class="user-menu" id="user-menu">
+          <img id="user-avatar" src="" alt="" style="width:28px;height:28px;border-radius:50%;display:none;margin-left:8px;border:2px solid var(--border)">
+          <span id="user-name" style="font-size:13px;font-weight:600;margin-left:8px;color:var(--text-primary)"></span>
+          <button class="btn btn-ghost" id="logout-btn" onclick="logout()" style="margin-left:4px;font-size:12px;padding:4px 8px">Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- SIDEBAR — FILE TREE -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <span>📁 Explorer</span>
+        <button class="btn btn-ghost" style="padding:2px 8px;font-size:11px" onclick="showPrompt()">+ New</button>
+      </div>
+      <div class="file-tree" id="file-tree">
+        <div style="padding:24px 16px;color:var(--text-muted);font-size:13px;text-align:center">
+          No files yet.<br>
+          <button class="btn btn-primary" style="margin-top:12px;padding:6px 14px;font-size:12px" onclick="showPrompt()">+ Generate Plugin</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- EDITOR -->
+    <main class="editor-area">
+      <div class="editor-placeholder" id="editor-placeholder">
+        <div class="editor-placeholder-icon">⛏</div>
+        <h3>Welcome to Kodari</h3>
+        <p>Describe the plugin you want to build.<br>AI will generate the code, you can edit it, then download a .jar.</p>
+        <button class="btn btn-primary" style="margin-top:20px" onclick="showPrompt()">⚡ Generate Your First Plugin</button>
+      </div>
+      <div id="monaco-editor" style="display:none"></div>
+
+      <!-- PROMPT OVERLAY -->
+      <div class="prompt-overlay" id="prompt-overlay" style="display:none">
+        <div class="prompt-card">
+          <h2>✨ Describe your plugin</h2>
+          <p class="sub">AI will write the code, generate plugin.yml, and build the project.</p>
+
+          <div class="meta">
+            <div>
+              <label>Plugin name</label>
+              <input class="input" id="meta-name" placeholder="LightningSword" value="MyPlugin">
+            </div>
+            <div>
+              <label>MC version</label>
+              <select class="input" id="meta-version">
+                <option value="1.21">1.21 (latest)</option>
+                <option value="1.20.4" selected>1.20.4</option>
+                <option value="1.19.4">1.19.4</option>
+                <option value="1.18.2">1.18.2</option>
+              </select>
+            </div>
+          </div>
+
+          <label style="display:block;font-size:12px;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px">What should it do?</label>
+          <textarea class="textarea" id="prompt-input" placeholder="e.g. Create a custom sword that summons lightning on right-click and deals 2x damage to mobs"></textarea>
+
+          <div class="prompt-actions">
+            <button class="btn btn-ghost" onclick="hidePrompt()">Cancel</button>
+            <button class="btn btn-primary" id="generate-btn" onclick="generatePlugin()">
+              <span>⚡ Generate Plugin</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS MODAL -->
+      <div class="prompt-overlay" id="settings-overlay" style="display:none">
+        <div class="prompt-card" style="max-width:560px">
+          <h2>⚙️ AI Model Settings</h2>
+          <p class="sub">Switch between providers and models. Changes apply instantly.</p>
+
+          <div class="settings-section">
+            <label class="settings-label">Provider</label>
+            <div class="provider-tabs" id="provider-tabs">
+              <button class="provider-tab" data-provider="openrouter" onclick="selectProvider('openrouter')">
+                <span class="provider-icon">🌐</span>
+                <span class="provider-name">OpenRouter</span>
+                <span class="provider-status" id="status-openrouter"></span>
+              </button>
+              <button class="provider-tab" data-provider="openai" onclick="selectProvider('openai')">
+                <span class="provider-icon">🟢</span>
+                <span class="provider-name">OpenAI</span>
+                <span class="provider-status" id="status-openai"></span>
+              </button>
+              <button class="provider-tab" data-provider="gemini" onclick="selectProvider('gemini')">
+                <span class="provider-icon">♊</span>
+                <span class="provider-name">Gemini</span>
+                <span class="provider-status" id="status-gemini"></span>
+              </button>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <label class="settings-label">Model</label>
+            <select class="input" id="settings-model"></select>
+            <p style="font-size:11px;color:var(--text-muted);margin-top:6px" id="model-description"></p>
+          </div>
+
+          <div class="settings-section">
+            <label class="settings-label">API Key (optional override)</label>
+            <input type="password" class="input" id="settings-api-key" placeholder="Leave blank to use .env default">
+            <p style="font-size:11px;color:var(--text-muted);margin-top:6px">Override the .env key for this session. Stored in browser only.</p>
+          </div>
+
+          <div class="prompt-actions">
+            <button class="btn btn-ghost" onclick="hideSettings()">Cancel</button>
+            <button class="btn btn-primary" onclick="saveSettings()">✓ Save & Apply</button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- TERMINAL -->
+    <section class="terminal">
+      <div class="terminal-header">
+        <span class="terminal-tab active">📟 Build Output</span>
+        <span class="terminal-tab">PROBLEMS (0)</span>
+        <span style="margin-left:auto;font-size:11px;color:var(--text-muted)" id="build-status">Ready</span>
+      </div>
+      <div class="terminal-body" id="terminal">
+        <div class="log-line log-info">[Kodari] Welcome! Describe a plugin to begin.</div>
+      </div>
+    </section>
+
+    <!-- AI CHAT -->
+    <aside class="chat-panel">
+      <div class="chat-header">
+        <div class="chat-avatar">🤖</div>
+        <div>
+          <div class="chat-title">Kodari AI</div>
+          <div class="chat-subtitle" id="chat-status">Online • Gemini 2.0</div>
+        </div>
+      </div>
+      <div class="chat-messages" id="chat-messages">
+        <div class="msg ai">
+          👋 Hi! I'm Kodari. I can help you build Minecraft plugins, fix errors, or explain Java concepts. What are we building today?
+        </div>
+      </div>
+      <div class="chat-input-area">
+        <textarea class="chat-input" id="chat-input" placeholder="Ask anything..." rows="1"></textarea>
+        <button class="chat-send" id="chat-send" onclick="sendChat()">→</button>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Monaco Editor -->
+  <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js"></script>
+  <script src="/js/ide.js"></script>
+  <script>
+    // ===== AI SETTINGS =====
+    let aiConfig = null;
+
+    async function loadAIConfig() {
+      try {
+        const res = await fetch('/api/ai/config', { credentials: 'include' });
+        aiConfig = await res.json();
+        updateModelBadge();
+      } catch (e) {
+        console.error('Failed to load AI config', e);
+      }
+    }
+
+    function updateModelBadge() {
+      if (!aiConfig) return;
+      const { current, available } = aiConfig;
+      document.getElementById('current-model-text').textContent = `${current.provider} • ${shortModelName(current.model)}`;
+      document.getElementById('provider-dot').className = `provider-dot ${current.provider}`;
+    }
+
+    function shortModelName(model) {
+      // Trim long model names for the badge
+      if (model.length > 30) {
+        const parts = model.split('/');
+        return parts[parts.length - 1];
+      }
+      return model;
+    }
+
+    function openSettings() {
+      document.getElementById('settings-overlay').style.display = 'flex';
+      // Update provider tab statuses
+      ['openai', 'openrouter', 'gemini'].forEach((p) => {
+        const status = document.getElementById(`status-${p}`);
+        const tab = document.querySelector(`[data-provider="${p}"]`);
+        if (aiConfig?.available[p]) {
+          status.textContent = 'ready';
+          status.className = 'provider-status configured';
+          tab.classList.remove('disabled');
+        } else {
+          status.textContent = 'no key';
+          tab.classList.add('disabled');
+        }
+        tab.classList.toggle('active', p === aiConfig.current.provider);
+      });
+      selectProvider(aiConfig.current.provider, true);
+    }
+
+    function hideSettings() {
+      document.getElementById('settings-overlay').style.display = 'none';
+    }
+
+    function selectProvider(provider, silent = false) {
+      if (!aiConfig?.available[provider] && !silent) {
+        toast(`⚠️ ${provider} has no API key. Add one below or in .env`, 'error');
+      }
+      document.querySelectorAll('.provider-tab').forEach((tab) => {
+        tab.classList.toggle('active', tab.dataset.provider === provider);
+      });
+      const modelSelect = document.getElementById('settings-model');
+      const desc = document.getElementById('model-description');
+      const models = aiConfig?.models?.[provider] || [];
+      modelSelect.innerHTML = models.map((m) =>
+        `<option value="${m.id}" ${m.id === aiConfig?.current?.model && provider === aiConfig?.current?.provider ? 'selected' : ''}>${m.name}</option>`
+      ).join('');
+      modelSelect.dataset.provider = provider;
+      const selected = models.find((m) => m.id === modelSelect.value);
+      if (selected) desc.textContent = selected.description;
+      modelSelect.onchange = () => {
+        const sel = models.find((m) => m.id === modelSelect.value);
+        desc.textContent = sel ? sel.description : '';
+      };
+    }
+
+    async function saveSettings() {
+      const provider = document.querySelector('.provider-tab.active')?.dataset.provider;
+      const model = document.getElementById('settings-model').value;
+      const apiKey = document.getElementById('settings-api-key').value.trim();
+      if (!provider || !model) {
+        toast('⚠️ Pick provider and model', 'error');
+        return;
+      }
+      try {
+        const res = await fetch('/api/ai/config', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ provider, model, apiKey: apiKey || undefined }),
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || 'Failed to save');
+        await loadAIConfig();
+        hideSettings();
+        toast(`✅ Switched to ${provider} • ${shortModelName(model)}`, 'success');
+      } catch (err) {
+        toast(`❌ ${err.message}`, 'error');
+      }
+    }
+
+    // Load on init
+    loadAIConfig();
+
+    // ===== AUTH CHECK =====
+    fetch('/api/me', { credentials: 'include' })
+      .then(r => r.json())
+      .then(data => {
+        if (!data.authenticated) {
+          window.location.href = '/login';
+          return;
+        }
+        const user = data.user;
+        const nameEl = document.getElementById('user-name');
+        const avatarEl = document.getElementById('user-avatar');
+        nameEl.textContent = user.name || user.email || 'User';
+        if (user.avatar) {
+          avatarEl.src = user.avatar;
+          avatarEl.style.display = 'inline-block';
+        }
+        // Provider badge
+        const badge = document.createElement('span');
+        badge.style.cssText = 'font-size:10px;padding:2px 6px;border-radius:4px;background:var(--bg-tertiary);color:var(--text-muted);margin-left:6px';
+        badge.textContent = user.provider;
+        nameEl.appendChild(badge);
+      })
+      .catch(() => window.location.href = '/login');
+
+    function logout() {
+      fetch('/auth/logout', { method: 'POST', credentials: 'include' })
+        .then(() => window.location.href = '/login');
+    }
+  </script>
+</body>
+</html>

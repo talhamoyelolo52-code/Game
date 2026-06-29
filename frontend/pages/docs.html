@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Docs — Kodari AI</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .docs-layout {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 24px;
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 40px;
+    }
+    .docs-sidebar {
+      position: sticky;
+      top: 80px;
+      align-self: start;
+    }
+    .docs-sidebar h4 {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      letter-spacing: 1px;
+    }
+    .docs-sidebar a {
+      display: block;
+      padding: 6px 12px;
+      color: var(--text-secondary);
+      font-size: 14px;
+      border-radius: 6px;
+      margin-bottom: 2px;
+    }
+    .docs-sidebar a:hover { background: var(--bg-elevated); color: var(--text-primary); text-decoration: none; }
+    .docs-content h1 { font-size: 36px; margin-bottom: 12px; }
+    .docs-content h2 { font-size: 24px; margin: 32px 0 12px; }
+    .docs-content h3 { font-size: 18px; margin: 24px 0 8px; }
+    .docs-content p { color: var(--text-secondary); line-height: 1.7; margin-bottom: 12px; }
+    .docs-content code {
+      background: var(--bg-tertiary);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--accent-glow);
+    }
+    .docs-content pre {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      padding: 16px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 12px 0 20px;
+    }
+    .docs-content pre code {
+      background: none;
+      padding: 0;
+      color: var(--text-primary);
+      font-size: 13px;
+    }
+    .step {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+      align-items: flex-start;
+    }
+    .step-num {
+      width: 28px;
+      height: 28px;
+      background: var(--gradient);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+    .alert {
+      padding: 12px 16px;
+      background: var(--bg-secondary);
+      border-left: 3px solid var(--accent);
+      border-radius: 6px;
+      margin: 16px 0;
+      font-size: 14px;
+    }
+    @media (max-width: 700px) {
+      .docs-layout { grid-template-columns: 1fr; }
+      .docs-sidebar { position: static; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/" class="nav-brand">
+      <div class="nav-brand-icon">⛏</div>
+      Kodari
+    </a>
+    <div class="nav-links">
+      <a href="/templates" class="nav-link">Templates</a>
+      <a href="/docs" class="nav-link active">Docs</a>
+      <a href="/generator" class="nav-cta">Open IDE →</a>
+    </div>
+  </nav>
+
+  <div class="docs-layout">
+    <aside class="docs-sidebar">
+      <h4>Getting Started</h4>
+      <a href="#quickstart">Quickstart</a>
+      <a href="#how-it-works">How it works</a>
+      <a href="#setup">Setup</a>
+
+      <h4 style="margin-top:24px">Reference</h4>
+      <a href="#prompts">Writing good prompts</a>
+      <a href="#build">Building & exporting</a>
+      <a href="#api">API Reference</a>
+
+      <h4 style="margin-top:24px">Help</h4>
+      <a href="#faq">FAQ</a>
+      <a href="#troubleshooting">Troubleshooting</a>
+    </aside>
+
+    <article class="docs-content">
+      <h1>📚 Documentation</h1>
+      <p>Everything you need to build Minecraft plugins with Kodari AI.</p>
+
+      <h2 id="quickstart">Quickstart</h2>
+      <div class="step">
+        <div class="step-num">1</div>
+        <div><strong>Open the IDE</strong> — click "Open IDE" in the top right or go to <code>/generator</code>.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div><strong>Describe your plugin</strong> — for example: "Create a sword that shoots fireballs on right-click with a 5-second cooldown".</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div><strong>AI generates the code</strong> — wait ~30 seconds. You'll see the file tree populate.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div><strong>Edit & refine</strong> — click any file to edit. Ask the AI chatbot to make changes: "Add a permission node for this command".</div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div><strong>Build & download</strong> — click the ⚡ Build button. You'll get a .zip with the full project (Maven-built .jar included after compiling).</div>
+      </div>
+
+      <h2 id="how-it-works">How it works</h2>
+      <p>Kodari uses Google's Gemini 2.0 Flash model under the hood. The backend sends your prompt along with a system prompt that tells the AI to:</p>
+      <ul style="color:var(--text-secondary);line-height:1.8;margin-left:20px">
+        <li>Write Java 17 code using the Bukkit/Spigot/Paper API</li>
+        <li>Return a structured JSON of files (Java source, <code>plugin.yml</code>, <code>pom.xml</code>)</li>
+        <li>Use modern Paper API patterns where possible</li>
+        <li>Include proper event listeners, commands, and config handling</li>
+      </ul>
+      <p>The IDE then renders the files in Monaco (the same editor that powers VS Code) and lets you edit them in place.</p>
+
+      <h2 id="setup">Setup (self-hosted)</h2>
+      <p>To run your own instance locally:</p>
+      <pre><code># Clone and install
+cd kodari-clone/backend
+npm install
+
+# Add your Gemini API key
+echo "GEMINI_API_KEY=AIza..." > .env
+
+# Start
+node server.js
+
+# Open http://localhost:3000</code></pre>
+
+      <div class="alert">
+        💡 <strong>Get a free Gemini API key</strong> at <code>aistudio.google.com/apikey</code>. The free tier gives you plenty of generations per minute.
+      </div>
+
+      <h2 id="prompts">Writing good prompts</h2>
+      <p>The more specific your prompt, the better the code. Here are some examples:</p>
+
+      <h3>❌ Vague</h3>
+      <pre><code>Make a cool plugin</code></pre>
+
+      <h3>✅ Specific</h3>
+      <pre><code>Create a custom item (golden hoe named "Reaper's Scythe") that on right-click:
+- Heals the user 2 hearts
+- Applies Speed II for 5 seconds
+- Has a 10-second cooldown shown in the action bar
+- Plays entity.wither.spawn sound
+- Permission: kodari.scythe.use
+- Cooldown bypass for kodari.scythe.bypass</code></pre>
+
+      <h3>Great prompts include:</h3>
+      <ul style="color:var(--text-secondary);line-height:1.8;margin-left:20px">
+        <li><strong>The feature</strong> — what should it do?</li>
+        <li><strong>Triggers</strong> — when does it activate? (right-click, command, event, etc.)</li>
+        <li><strong>Constraints</strong> — cooldowns, permissions, costs, limits</li>
+        <li><strong>Visual/audio feedback</strong> — particles, sounds, messages</li>
+        <li><strong>Edge cases</strong> — what if the player is in creative? PvP? Has no permission?</li>
+      </ul>
+
+      <h2 id="build">Building & exporting</h2>
+      <p>When you click ⚡ Build, Kodari simulates a Maven build (since real Java compilation requires JDK on the server). The output is a <code>.zip</code> file containing:</p>
+      <pre><code>MyPlugin.zip
+├── src/main/java/com/kodari/MyPlugin.java
+├── src/main/resources/plugin.yml
+├── pom.xml
+├── README.md
+└── BUILD.txt  ← instructions to compile locally</code></pre>
+
+      <p>To compile locally:</p>
+      <pre><code>unzip MyPlugin.zip
+cd MyPlugin
+mvn clean package
+# .jar will be in target/</code></pre>
+
+      <h2 id="api">API Reference</h2>
+      <p>You can also call Kodari's backend directly:</p>
+
+      <h3><code>POST /api/generate</code></h3>
+      <pre><code>{
+  "prompt": "Create a lightning sword",
+  "pluginName": "LightningSword",
+  "mcVersion": "1.20.4"
+}</code></pre>
+
+      <h3><code>POST /api/chat</code></h3>
+      <pre><code>{
+  "message": "How do I add a cooldown?",
+  "history": []
+}</code></pre>
+
+      <h3><code>POST /api/export</code></h3>
+      <p>Returns a ZIP file with all the generated files.</p>
+
+      <h3><code>GET /api/templates</code></h3>
+      <p>Returns the list of starter templates.</p>
+
+      <h2 id="faq">FAQ</h2>
+
+      <h3>Is this free?</h3>
+      <p>Yes. You only pay for the Gemini API usage (which has a generous free tier).</p>
+
+      <h3>Does it actually compile to .jar?</h3>
+      <p>The server-side build is a simulation. To produce a real .jar you need to compile locally with Maven. Most plugin developers do this anyway since they want to test on their server.</p>
+
+      <h3>Which MC versions work?</h3>
+      <p>Any version from 1.18+. The AI is instructed to use modern Paper API patterns which work across 1.18-1.21.</p>
+
+      <h3>Can I use this for production servers?</h3>
+      <p>Absolutely. The generated code uses real Bukkit/Paper APIs and includes proper plugin.yml, permissions, and event registration. Just review it before deploying (as you would any AI-generated code).</p>
+
+      <h2 id="troubleshooting">Troubleshooting</h2>
+
+      <h3>"Gemini API key not configured"</h3>
+      <p>Make sure your <code>.env</code> file in the backend folder has a valid <code>GEMINI_API_KEY</code>.</p>
+
+      <h3>"Generation takes forever"</h3>
+      <p>First request can take 10-20s due to Gemini cold start. Subsequent ones are faster.</p>
+
+      <h3>"AI generated broken code"</h3>
+      <p>Click in the chat: "The code has a syntax error on line X, please fix". The AI will regenerate.</p>
+
+      <footer class="footer">© 2026 Kodari AI Clone • Not affiliated with Mojang or Microsoft</footer>
+    </article>
+  </div>
+</body>
+</html>
